@@ -9,10 +9,18 @@ from sdmetrics.single_table.base import SingleTableMetric
 from sdmetrics.single_table.bayesian_network import BNLikelihood, BNLogLikelihood
 from sdmetrics.single_table.detection import LogisticDetection, SVCDetection
 from sdmetrics.single_table.multi_column_pairs import (
-    ContingencySimilarity, ContinuousKLDivergence, DiscreteKLDivergence)
+    ContingencySimilarity,
+    ContinuousKLDivergence,
+    DiscreteKLDivergence,
+)
 from sdmetrics.single_table.multi_single_column import (
-    BoundaryAdherence, CategoryCoverage, CSTest, KSComplement, MissingValueSimilarity,
-    TVComplement)
+    BoundaryAdherence,
+    CategoryCoverage,
+    CSTest,
+    KSComplement,
+    MissingValueSimilarity,
+    TVComplement,
+)
 
 METRICS = [
     CSTest,
@@ -33,55 +41,65 @@ METRICS = [
 
 @pytest.fixture()
 def ones():
-    return pd.DataFrame({
-        'a': [1] * 300,
-        'b': [True] * 300,
-        'c': [1.0] * 300,
-        'd': [True] * 300,
-    })
+    return pd.DataFrame(
+        {
+            "a": [1] * 300,
+            "b": [True] * 300,
+            "c": [1.0] * 300,
+            "d": [True] * 300,
+        }
+    )
 
 
 @pytest.fixture()
 def zeros():
-    return pd.DataFrame({
-        'a': [0] * 300,
-        'b': [False] * 300,
-        'c': [0.0] * 300,
-        'd': [False] * 300,
-    })
+    return pd.DataFrame(
+        {
+            "a": [0] * 300,
+            "b": [False] * 300,
+            "c": [0.0] * 300,
+            "d": [False] * 300,
+        }
+    )
 
 
 @pytest.fixture()
 def real_data():
-    return pd.DataFrame({
-        'a': np.random.normal(size=1800),
-        'b': np.random.randint(0, 10, size=1800),
-        'c': ['a', 'b', 'b', 'c', 'c', 'c'] * 300,
-        'd': [True, True, True, True, True, False] * 300,
-    })
+    return pd.DataFrame(
+        {
+            "a": np.random.normal(size=1800),
+            "b": np.random.randint(0, 10, size=1800),
+            "c": ["a", "b", "b", "c", "c", "c"] * 300,
+            "d": [True, True, True, True, True, False] * 300,
+        }
+    )
 
 
 @pytest.fixture()
 def good_data():
-    return pd.DataFrame({
-        'a': np.random.normal(loc=0.01, size=1800),
-        'b': np.random.randint(0, 10, size=1800),
-        'c': ['a', 'b', 'b', 'b', 'c', 'c'] * 300,
-        'd': [True, True, True, True, False, False] * 300,
-    })
+    return pd.DataFrame(
+        {
+            "a": np.random.normal(loc=0.01, size=1800),
+            "b": np.random.randint(0, 10, size=1800),
+            "c": ["a", "b", "b", "b", "c", "c"] * 300,
+            "d": [True, True, True, True, False, False] * 300,
+        }
+    )
 
 
 @pytest.fixture()
 def bad_data():
-    return pd.DataFrame({
-        'a': np.random.normal(loc=5, scale=3, size=1800),
-        'b': np.random.randint(5, 15, size=1800),
-        'c': ['a', 'a', 'a', 'a', 'b', 'b'] * 300,
-        'd': [True, False, False, False, False, False] * 300,
-    })
+    return pd.DataFrame(
+        {
+            "a": np.random.normal(loc=5, scale=3, size=1800),
+            "b": np.random.randint(5, 15, size=1800),
+            "c": ["a", "a", "a", "a", "b", "b"] * 300,
+            "d": [True, False, False, False, False, False] * 300,
+        }
+    )
 
 
-@pytest.mark.parametrize('metric', METRICS)
+@pytest.mark.parametrize("metric", METRICS)
 def test_rank(metric, ones, zeros, real_data, good_data, bad_data):
     worst = metric.compute(ones, zeros)
     normalized_worst = metric.normalize(worst)
@@ -110,10 +128,7 @@ def test_compute_all():
     real_data, synthetic_data, metadata = load_single_table_demo()
 
     output = compute_metrics(
-        SingleTableMetric.get_subclasses(),
-        real_data,
-        synthetic_data,
-        metadata=metadata
+        SingleTableMetric.get_subclasses(), real_data, synthetic_data, metadata=metadata
     )
 
     assert not pd.isna(output.raw_score.mean())

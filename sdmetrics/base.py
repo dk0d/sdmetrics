@@ -78,10 +78,10 @@ class BaseMetric:
         max_value = float(cls.max_value)
 
         if max_value < raw_score or min_value > raw_score:
-            raise ValueError('`raw_score` must be between `min_value` and `max_value`.')
+            raise ValueError("`raw_score` must be between `min_value` and `max_value`.")
 
-        is_min_finite = min_value not in (float('-inf'), float('inf'))
-        is_max_finite = max_value not in (float('-inf'), float('inf'))
+        is_min_finite = min_value not in (float("-inf"), float("inf"))
+        is_max_finite = max_value not in (float("-inf"), float("inf"))
 
         score = None
         if is_min_finite and is_max_finite:
@@ -97,8 +97,10 @@ class BaseMetric:
             score = 1 / (1 + np.exp(-raw_score))
 
         if score is None or score < 0 or score > 1:
-            raise AssertionError(f'This should be unreachable. The score {score} should be'
-                                 f'a value between 0 and 1.')
+            raise AssertionError(
+                f"This should be unreachable. The score {score} should be"
+                f"a value between 0 and 1."
+            )
 
         if cls.goal == Goal.MINIMIZE:
             return 1.0 - score
