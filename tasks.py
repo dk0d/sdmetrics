@@ -12,37 +12,39 @@ from pathlib import Path
 from invoke import task
 
 COMPARISONS = {
-    '>=': operator.ge,
-    '>': operator.gt,
-    '<': operator.lt,
-    '<=': operator.le
+    ">=": operator.ge,
+    ">": operator.gt,
+    "<": operator.lt,
+    "<=": operator.le,
 }
 
 
-if not hasattr(inspect, 'getargspec'):
-     inspect.getargspec = inspect.getfullargspec
+if not hasattr(inspect, "getargspec"):
+    inspect.getargspec = inspect.getfullargspec
 
 
 @task
 def check_dependencies(c):
-    c.run('python -m pip check')
+    c.run("python -m pip check")
 
 
 @task
 def unit(c):
-    c.run('python -m pytest ./tests/unit --cov=sdmetrics --cov-report=xml')
+    c.run("python -m pytest ./tests/unit --cov=sdmetrics --cov-report=xml")
 
 
 @task
 def integration(c):
-    c.run('python -m pytest ./tests/integration --reruns 5 --disable-warnings')
+    c.run("python -m pytest ./tests/integration --reruns 5 --disable-warnings")
 
 
 def _validate_python_version(line):
     is_valid = True
-    for python_version_match in re.finditer(r"python_version(<=?|>=?|==)\'(\d\.?)+\'", line):
+    for python_version_match in re.finditer(
+        r"python_version(<=?|>=?|==)\'(\d\.?)+\'", line
+    ):
         python_version = python_version_match.group(0)
-        comparison = re.search(r'(>=?|<=?|==)', python_version).group(0)
+        comparison = re.search(r"(>=?|<=?|==)", python_version).group(0)
         version_number = python_version.split(comparison)[-1].replace("'", "")
         comparison_function = COMPARISONS[comparison]
         is_valid = is_valid and comparison_function(
@@ -55,31 +57,33 @@ def _validate_python_version(line):
 
 @task
 def install_minimum(c):
-    with open('setup.py', 'r') as setup_py:
+    with open("setup.py", "r") as setup_py:
         lines = setup_py.read().splitlines()
 
     versions = []
     started = False
     for line in lines:
         if started:
-            if line == ']':
+            if line == "]":
                 break
 
             line = line.strip()
             if _validate_python_version(line):
-                requirement = re.match(r'[^>]*', line).group(0)
-                requirement = re.sub(r"""['",]""", '', requirement)
-                version = re.search(r'>=?(\d\.?)+', line).group(0)
+                requirement = re.match(r"[^>]*", line).group(0)
+                requirement = re.sub(r"""['",]""", "", requirement)
+                version = re.search(r">=?(\d\.?)+", line).group(0)
                 if version:
-                    version = re.sub(r'>=?', '==', version)
-                    version = re.sub(r"""['",]""", '', version)
+                    version = re.sub(r">=?", "==", version)
+                    version = re.sub(r"""['",]""", "", version)
                     requirement += version
 
                 versions.append(requirement)
 
-        elif (line.startswith('install_requires = [') or
-             line.startswith('pomegranate_requires = [') or
-             line.startswith('torch_requires = [')):
+        elif (
+            line.startswith("install_requires = [")
+            or line.startswith("pomegranate_requires = [")
+            or line.startswith("torch_requires = [")
+        ):
             started = True
 
     c.run(f'python -m pip install {" ".join(versions)}')
@@ -95,37 +99,42 @@ def minimum(c):
 
 @task
 def readme(c):
-    test_path = Path('tests/readme_test')
+    test_path = Path("tests/readme_test")
     if test_path.exists() and test_path.is_dir():
         shutil.rmtree(test_path)
 
     cwd = os.getcwd()
     os.makedirs(test_path, exist_ok=True)
-    shutil.copy('README.md', test_path / 'README.md')
+    shutil.copy("README.md", test_path / "README.md")
     os.chdir(test_path)
-    c.run('rundoc run --single-session python3 -t python3 README.md')
+    c.run("rundoc run --single-session python3 -t python3 README.md")
     os.chdir(cwd)
     shutil.rmtree(test_path)
 
 
 @task
 def tutorials(c):
-    for ipynb_file in glob.glob('tutorials/*.ipynb') + glob.glob('tutorials/**/*.ipynb'):
-        if '.ipynb_checkpoints' not in ipynb_file:
-            c.run((
-                'jupyter nbconvert --execute --ExecutePreprocessor.timeout=3600 '
-                f'--to=html --stdout {ipynb_file}'
-            ), hide='out')
+    for ipynb_file in glob.glob("tutorials/*.ipynb") + glob.glob(
+        "tutorials/**/*.ipynb"
+    ):
+        if ".ipynb_checkpoints" not in ipynb_file:
+            c.run(
+                (
+                    "jupyter nbconvert --execute --ExecutePreprocessor.timeout=3600 "
+                    f"--to=html --stdout {ipynb_file}"
+                ),
+                hide="out",
+            )
 
 
 @task
 def lint(c):
     check_dependencies(c)
-    c.run('flake8 sdmetrics')
-    c.run('pydocstyle sdmetrics')
-    c.run('flake8 tests --ignore=D')
-    c.run('pydocstyle tests')
-    c.run('isort -c --recursive sdmetrics tests')
+    c.run("flake8 sdmetrics")
+    c.run("pydocstyle sdmetrics")
+    c.run("flake8 tests --ignore=D")
+    c.run("pydocstyle tests")
+    c.run("isort -c --recursive sdmetrics tests")
 
 
 def remove_readonly(func, path, _):
